@@ -14,12 +14,12 @@ dataset_path = 'datasets/minst.pickle'
 def load_mnist():
     if not os.path.exists(dataset_path):
         print("load mnist datasets from openml....")
-        origin = datasets.fetch_openml('mnist_784', version=1, as_frame=False, parser='auto')
+        origin = datasets.fetch_openml('mnist_784', version=1, as_frame=False)
         if not os.path.exists(os.path.dirname(dataset_path)):
             os.makedirs(os.path.dirname(dataset_path))
         mnist = [
             origin.data,
-            origin.target,
+            origin.target.astype(int),
         ]
         with open(dataset_path, 'wb') as file:
             file.write(pickle.dumps(mnist))
