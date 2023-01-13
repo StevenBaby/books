@@ -1,1 +1,3 @@
 deep_learning/datasets/minst.pickle
+__pycache__
+*.pyc
