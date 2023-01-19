@@ -12,6 +12,23 @@ class Optimizer(object):
         param -= self.lr * grad
 
 
+class SGDOptimizer(Optimizer):
+
+    pass
+
+
+class OptimParams(object):
+
+    optim_class = SGDOptimizer
+    params = {
+        'lr': 0.1
+    }
+
+    @classmethod
+    def make_optimizer(cls):
+        return cls.optim_class(**cls.params)
+
+
 class Layer(object):
 
     def forward(self, x: np.ndarray):
@@ -20,12 +37,12 @@ class Layer(object):
     def backward(self, dy: np.ndarray):
         pass
 
-    def update(self, optim: Optimizer):
+    def update(self):
         pass
 
 
 class LinearLayer(Layer):
-    def __init__(self, input, output) -> None:
+    def __init__(self, input, output, params=OptimParams) -> None:
         self.w = np.random.normal(
             loc=0.0,
             scale=pow(input, -0.5),
@@ -34,6 +51,7 @@ class LinearLayer(Layer):
 
         self.dw = self.w * 0.1
         self.batch_size = 1
+        self.optim = params.make_optimizer()
 
     def forward(self, x: np.ndarray):
         self.batch_size = x.shape[0]
@@ -54,19 +72,20 @@ class LinearLayer(Layer):
             dx = dx.reshape(self.xshape)
         return dx
 
-    def update(self, optim: Optimizer):
-        optim.update(self.w, self.dw)
+    def update(self):
+        self.optim.update(self.w, self.dw)
 
 
 class AffineLayer(LinearLayer):
 
-    def __init__(self, input, output) -> None:
-        super().__init__(input, output)
+    def __init__(self, input, output, params=OptimParams) -> None:
+        super().__init__(input, output, params)
         self.b = np.random.normal(
             loc=0.0,
             scale=pow(input, -0.5),
             size=output
         )
+        self.optimb = params.make_optimizer()
 
     def forward(self, x: np.ndarray):
         y = super().forward(x)
@@ -78,9 +97,9 @@ class AffineLayer(LinearLayer):
         self.db = np.sum(dy, axis=0)
         return dx
 
-    def update(self, optim: Optimizer):
-        super().update(optim)
-        optim.update(self.b, self.db)
+    def update(self):
+        super().update()
+        self.optimb.update(self.b, self.db)
 
 
 class SigmoidLayer(Layer):
@@ -142,7 +161,6 @@ class BaseNeuralNetwork(object):
         ]
 
         self.loss_function = MeanSquaredError()
-        self.optim = Optimizer(0.1)
 
     def forward(self, x: np.ndarray):
         for layer in self.layers:
@@ -164,4 +182,4 @@ class BaseNeuralNetwork(object):
 
     def update(self):
         for layer in self.layers[::-1]:
-            layer.update(self.optim)
+            layer.update()
