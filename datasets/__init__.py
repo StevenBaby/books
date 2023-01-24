@@ -17,7 +17,7 @@ def oneshot(label):
     return one
 
 
-def load_mnist():
+def load_mnist(shuffle=True):
     if not os.path.exists(dataset_path):
         print("load mnist datasets from openml....")
         origin = datasets.fetch_openml('mnist_784', version=1, as_frame=False)
@@ -42,7 +42,7 @@ def load_mnist():
         with open(dataset_path, 'rb') as f:
             mnist = pickle.load(f)
 
-    return train_test_split(mnist[0], mnist[1], test_size=0.25)
+    return train_test_split(mnist[0], mnist[1], test_size=0.25, shuffle=shuffle)
 
 
 if __name__ == '__main__':
